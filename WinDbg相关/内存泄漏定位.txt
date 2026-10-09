@@ -1,0 +1,33 @@
+1.】根据内存泄漏时的输出简单定位
+https://blog.csdn.net/u012947501/article/details/113698333
+
+
+#include <stdlib.h>  
+#include <crtdbg.h>  
+#ifdef _DEBUG  
+#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)  
+#endif  
+void EnableMemLeakCheck()
+{
+	int tmpFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+	tmpFlag |= _CRTDBG_LEAK_CHECK_DF;
+	_CrtSetDbgFlag(tmpFlag);
+}
+
+//
+using namespace std;
+int main()							//入口函数，可以是Dialog的OnInitDlg
+{
+	EnableMemLeakCheck();
+	//其他函数
+}
+
+
+
+2.】使用WinDebug工具进行定位
+https://blog.csdn.net/qq_31917799/article/details/119270502
+
+
+
+
+

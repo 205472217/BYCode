@@ -1,0 +1,11 @@
+默认支持: 	map、set、unordered_map, unordered_set
+默认不支持：	multimap, multiset	允许重复键，插入必成功，故不支持
+
+	//map的insert返回
+	std::map<int, std::string> mapTest;
+	
+	std::pair<std::map<int, std::string>::iterator, bool>(ret1) = mapTest.insert(std::pair<int,std::string>(0,"zero1"));
+	std::cout<<"ret1.second = "<< ret1.second << std::endl;
+
+	auto ret2 = mapTest.insert(std::pair<int,std::string>(0,"zero2"));
+	std::cout<<"ret2.second = "<< ret2.second << std::endl;

@@ -1,0 +1,31 @@
+=============Nodejs=============
+Claude   要求 Node.js 版本 ≥ 18
+OpenCode 要求 Node.js 版本 ≥ 22
+
+1.下载Nodejs：https://nodejs.org/
+2.安装时勾选添加环境变量，验证
+	node -v
+	npm -v
+	
+=============claude=============
+1.安装：npm install -g @anthropic-ai/claude-code
+2.验证：claude --version
+
+=============opencode=============
+1.安装：npm install -g opencode-ai
+2.验证：opencode --version
+
+=============codegraph=============	
+1.安装：npm install -g codegraph
+2.选择配置MCP：npx @colbymchenry/codegraph install
+3.初始化/更新：	codegraph init / codegraph sync
+
+=============engram=============
+1. 下载： https://github.com/Gentleman-Programming/engram/releases
+2. 解压到 C:\engram_2.0.0\engram.exe，添加环境变量
+3. claude 添加MCP：claude mcp add --scope user engram -- engram mcp
+4. opencode 添加MCP：engram setup opencode
+
+
+
+

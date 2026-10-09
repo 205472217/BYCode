@@ -1,0 +1,33 @@
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
+		CStringA utf8Json(unicodeResponse);
+		rapidjson::Document doc;
+		doc.Parse(utf8Json.GetString());
+		if (doc.HasParseError()) 
+		{
+			return false;
+		}
+		// 检查 JSON 结构并读取数据
+		if (doc.IsObject() && doc.HasMember("trans_result") && doc["trans_result"].IsArray()) 
+		{
+			const rapidjson::Value& trans_result = doc["trans_result"];
+			for (rapidjson::SizeType i = 0; i < trans_result.Size(); i++) 
+			{
+				if (trans_result[i].IsObject() && trans_result[i].HasMember("dst"))
+				{
+					std::string s_out = std::string(trans_result[i]["dst"].GetString());
+					out = UTF8STRING_TO_CSTRING(s_out);
+					bResult = true;
+				}
+			}
+		}
+		else if (doc.IsObject() && doc.HasMember("error_code") && doc.HasMember("error_msg"))
+		{
+			if (doc["error_code"].IsString() && doc["error_msg"].IsString())
+			{
+				std::string s_code = std::string(doc["error_code"].GetString());
+				std::string s_msg = std::string(doc["error_msg"].GetString());
+			}
+		}

@@ -1,0 +1,41 @@
+一、multiset/multimap 支持重复键，
+find：可查询第一个键，返回 【第一个key的iterator】
+equal_range：可查询所有重复键，返回 【第一个key的iterator，第一个key的iterator+1】
+	
+	//set重复键查询
+	std::multiset<int> ms;
+	ms.insert(20);
+	ms.insert(20);
+	ms.insert(30);
+	ms.insert(30);
+	//a====
+//	std::pair<std::multiset<int>::iterator, std::multiset<int>::iterator> range1;
+	auto range1 = ms.equal_range(20); 
+	for (auto it = range1.first; it != range1.second; ++it) {
+		std::cout <<"set = "<< *it << std::endl; // 输出: 20 20
+	}
+	//b====需要#include <tuple>  //std::tie 支持
+	std::multiset<int>::iterator first1, last1;
+	std::tie(first1, last1) = ms.equal_range(30); 
+	for (auto it = first1; it != last1; ++it) {
+		std::cout <<"set[tie] = "<< *it << std::endl;  // 输出: 30 30
+	}
+
+	//map重复键查询
+	std::multimap<std::string, int> mm;
+	mm.insert(std::make_pair(std::string("Alice"), 10));
+	mm.insert(std::make_pair(std::string("Alice"), 30));
+	mm.insert(std::pair<std::string, int>(std::string("Bobe"), 20));
+	mm.insert(std::pair<std::string, int>(std::string("Bobe"), 40));
+	//a====
+//	std::pair<std::multimap<std::string, int>::iterator, std::multimap<std::string, int>::iterator> range2;
+	auto range2 = mm.equal_range(std::string("Alice"));
+	for (auto it = range2.first; it != range2.second; ++it) {
+		std::cout <<"map = "<< it->second << std::endl; // 输出: 10 30
+	}
+	//b====需要#include <tuple>  //std::tie 支持
+	std::multimap<std::string, int>::iterator first2, last2;
+	std::tie(first2, last2) = mm.equal_range(std::string("Bobe")); 
+	for (auto it = first2; it != last2; ++it) {
+		std::cout <<"map[tie] = "<< it->second << std::endl;  // 输出: 10 30
+	}
