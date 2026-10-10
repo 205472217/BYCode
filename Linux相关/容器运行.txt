@@ -1,0 +1,120 @@
+
+==================================================================
+【启动容器：支持GPU】
+docker run -d -it --name runreleaseenv_child --entrypoint bash --gpus all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=compute,utility img:latest
+
+【启动容器：支持GPU 、 限制内存使用】
+docker run -d -it --name runreleaseenv_child --entrypoint bash --gpus all -e NVIDIA_VISIBLE_DEVICES=all -e NVIDIA_DRIVER_CAPABILITIES=compute,utility  --memory 15g --memory-swap 15g img:latest
+
+==================================================================
+【拷贝程序文件夹】
+=======执行前保证容器已经创建，容器名正确=======
+#拷贝 <192.168.1.127> 上 runreleaseenv:/opt/extrackFrame ==> <192.168.3.156> 上 runreleaseenv_2:/opt/extrackFrame
+
+1.在<源宿主机> 执行（先压缩，再传输）
+docker exec -i runreleaseenv sh -c "cd /opt && tar -cf - extrackFrame" > extrackFrame.tar
+scp extrackFrame.tar root@192.168.3.156:/root/
+
+2.在<目标宿主机执行>
+cat /root/extrackFrame.tar | docker exec -i runreleaseenv_2 tar -xpf - -C /opt
+
+==================================================================
+【添加环境变量（ASApplication 或 ChildApp 需要），无法运行时根据lib文件所在目录按需添加】
+vim ~/.bashrc
+
+#ASApplication
+export LD_LIBRARY_PATH=/opt/ASApplication/lib:$ZZROOT/lib:$ZZROOT/lib64:/usr/local/cuda:$LD_LIBRARY_PATH
+
+#append ChildApp lib
+export LD_LIBRARY_PATH=/opt/ASApplication/lib:$LD_LIBRARY_PATH
+
+#append CUDA lib
+export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:\$LD_LIBRARY_PATH
+
+source ~/.bashrc
+
+
+================================运行环境==================================
+【extrackFrame】
+[===解压aws库===]
+tar -zxvf aws_sdk_all.tar.gz -C /usr/local
+
+[===下载aria2===]
+apt update && apt install -y aria2
+
+[===创建log_data文件夹===]
+mkdir -p /log_data
+chmod 777 /log_data
+
+【ASApplication/ChildApp】
+[===创建ramdisk文件夹===]
+mkdir -p /ramdisk
+chmod 777 /ramdisk
+
+[===指定显卡序号，避免始终使用显卡0导致GPU不足（适用于128多显卡环境）===]
+echo 'export CUDA_VISIBLE_DEVICES=1' >> /etc/profile
+echo 'export CUDA_MODULE_LOADING=LAZY' >> /etc/profile
+source /etc/profile
+
+echo 'export CUDA_VISIBLE_DEVICES=1' >> ~/.bashrc
+echo 'export CUDA_MODULE_LOADING=LAZY' >> ~/.bashrc
+source ~/.bashrc
+
+
+==============================后台运行程序====================================
+【ASApplication】
+nohup ./daemon ASApplication > /dev/null 2>&1 &			【未适配monitor脚本】
+
+【ChildApp】
+nohup ./monitor_child.sh > monitor.log 2>&1 </dev/null &	 
+
+【extrackFrame】
+nohup ./monitor_extrack.sh > monitor.log 2>&1 </dev/null &
+
+
+==============================查看日志==============================
+tail -n 10 -f filename.txt 					（先显示最后 10 行，再开始实时追踪）
+sed -n "10,20p" filename.txt				（显示 10行-20行 的内容）
+
+
+==============================搜索内容==============================
+grep -ni "指定内容" log.20.txt log.21.txt		（在指定文件搜索）
+grep -rni "指定内容" . --include="*.txt"		（递归文件夹搜索，需指定文件后缀）
+grep -C 10 "指定内容" log.1.txt				 	（显示前后10行）
+
+grep -ni "2051903457730854914" aslog.1.txt
+
+==============================清理日志文件(只保留log.1.txt)===================
+find . -maxdepth 1 -type f -name "log.*.txt" ! -name "log.1.txt" -delete
+
+
+==============================程序崩溃问题====================================
+【1.用gdb启动程序】
+cd /opt/ASApplication/bin
+gdb ./ASApplication
+
+【2.进入gdb环境后执行】
+set print thread-events off
+run
+
+【3.程序崩溃复现后执行】
+bt full
+thread apply all bt full
+info locals
+quit
+【4.AI分析输出信息，定位问题】
+
+
+==============================177机器VS Code无法连接====================================
+1.确保容器已启动
+
+2.CMD 执行下列命令，没有提示输密码，一般是容器的ssh服务没启动
+ssh root@192.168.0.177 -p 10022 
+
+2.容器内执行下列命令，启动ssh服务即可
+mkdir -p /run/sshd
+chmod 700 /run/sshd
+chown root:root /run/sshd
+/usr/sbin/sshd
+
+==================================================================
